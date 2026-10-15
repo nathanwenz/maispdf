@@ -28,28 +28,32 @@ st.markdown(
         font-weight: bold;
         color: #666666;
         background-color: rgba(240, 242, 246, 0.85);
-        padding: 5px 12px;
+        padding: 6px 14px;
         border-radius: 6px;
         border: 1px solid rgba(200, 200, 200, 0.5);
         z-index: 999999;
         pointer-events: none;
         font-family: 'Source Sans Pro', sans-serif;
+        text-align: right;
+        line-height: 1.25;
     }
     </style>
     <div class="watermark">
-        developer Nathan Wenzel
+        developer;<br>
+        Nathan Wenzel
     </div>
     """,
     unsafe_allow_html=True
 )
 
 # ---------------------------------------------------------
-# FOTO DE CAPA / BANNER DO SITE
+# FOTO DE CAPA / BANNER DO SITE (90% DE LARGURA)
 # ---------------------------------------------------------
-if os.path.exists("banner.png"):
-    st.image("banner.png", use_container_width=True)
-elif os.path.exists("banner.jpg"):
-    st.image("banner.jpg", use_container_width=True)
+banner_path = "banner.png" if os.path.exists("banner.png") else ("banner.jpg" if os.path.exists("banner.jpg") else None)
+if banner_path:
+    col_b1, col_b2, col_b3 = st.columns([0.05, 0.90, 0.05])
+    with col_b2:
+        st.image(banner_path, use_container_width=True)
 
 # Título Principal do Aplicativo
 st.title("📄 +PDF - Converta ou faça a junção de seus documentos (Word & PDF)")
