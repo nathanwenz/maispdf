@@ -15,27 +15,28 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# MARCA D'ÁGUA FIXA NO CANTO INFERIOR DIREITO
+# MARCA D'ÁGUA FIXA NO CANTO INFERIOR DIREITO (ACIMA DO MANAGE APP)
 # ---------------------------------------------------------
 st.markdown(
     """
     <style>
     .watermark {
         position: fixed;
-        bottom: 12px;
+        bottom: 50px;
         right: 20px;
         font-size: 13px;
         font-weight: bold;
         color: #666666;
-        background-color: rgba(240, 242, 246, 0.85);
+        background-color: rgba(240, 242, 246, 0.90);
         padding: 6px 14px;
         border-radius: 6px;
-        border: 1px solid rgba(200, 200, 200, 0.5);
+        border: 1px solid rgba(200, 200, 200, 0.6);
         z-index: 999999;
         pointer-events: none;
         font-family: 'Source Sans Pro', sans-serif;
         text-align: right;
         line-height: 1.25;
+        box-shadow: 0px 2px 6px rgba(0,0,0,0.08);
     }
     </style>
     <div class="watermark">
