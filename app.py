@@ -9,12 +9,13 @@ from pdf2docx import Converter
 
 # Configuração da página
 st.set_page_config(
-    page_title="Mesclador e Conversor de Documentos",
+    page_title="+PDF - Converta e Mescle Documentos",
     page_icon="📄",
     layout="wide"
 )
 
-st.title("📄 Mesclador e Conversor de Documentos (Word & PDF)")
+# Título Principal do Aplicativo
+st.title("📄 +PDF - Converta seus documentos (Word & PDF) ou junte-os, sem limites de quantidades dos arquivos soltos.")
 st.markdown("Junte múltiplos documentos ou converta formatos entre Word e PDF de forma rápida e gratuita.")
 
 # Criar as abas do aplicativo
@@ -186,7 +187,8 @@ with tab3:
                         cmd = ["soffice", "--headless", "--convert-to", "pdf", tmp_docx_path, "--outdir", tempfile.gettempdir()]
                         subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                         
-                        expected_pdf_path = os.path.splitext(tmp_docx_path)[0] + ".pdf"
+                        base_name = os.path.splitext(tmp_docx_path)[0]
+                        expected_pdf_path = base_name + ".pdf"
                         
                         if os.path.exists(expected_pdf_path):
                             st.success("✅ Conversão para PDF concluída!")
