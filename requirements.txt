@@ -1,0 +1,4 @@
+streamlit
+docxcompose
+pypdf
+python-docx
