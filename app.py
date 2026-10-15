@@ -1,21 +1,28 @@
 import os
 import subprocess
+import tempfile
 import streamlit as st
 from docx import Document
 from docxcompose.composer import Composer
 from pypdf import PdfWriter
+from pdf2docx import Converter
 
 # Configuração da página
 st.set_page_config(
-    page_title="Mesclador de Documentos Word & PDF",
+    page_title="Mesclador e Conversor de Documentos",
     page_icon="📄",
     layout="wide"
 )
 
-st.title("📄 Mesclador de Documentos Word & PDF")
-st.markdown("Junte múltiplos arquivos Word (.docx) ou PDF em um único arquivo de forma rápida e automática.")
+st.title("📄 Mesclador e Conversor de Documentos (Word & PDF)")
+st.markdown("Junte múltiplos documentos ou converta formatos entre Word e PDF de forma rápida e gratuita.")
 
-tab1, tab2 = st.tabs(["📝 Mesclar Documentos Word (.docx)", "📕 Mesclar Arquivos PDF (.pdf)"])
+# Criar as abas do aplicativo
+tab1, tab2, tab3 = st.tabs([
+    "📝 Mesclar Word (.docx)", 
+    "📕 Mesclar PDF (.pdf)", 
+    "🔄 Converter (Word ↔ PDF)"
+])
 
 # ---------------------------------------------------------
 # TAB 1: MESCLAR WORD
@@ -42,18 +49,17 @@ with tab1:
         output_format = st.radio(
             "Formato de saída desejado:",
             options=["Apenas Word (.docx)", "Apenas PDF (.pdf)", "Ambos (Word e PDF)"],
-            index=2
+            index=2,
+            key="word_out_format"
         )
         
-        if st.button("🚀 Processar e Juntar Arquivos Word", type="primary"):
+        if st.button("🚀 Processar e Juntar Arquivos Word", type="primary", key="btn_merge_word"):
             with st.spinner("Processando e mesclando documentos..."):
                 try:
-                    # Salvar primeiro arquivo como base
                     first_file = uploaded_word_files[0]
                     base_doc = Document(first_file)
                     composer = Composer(base_doc)
                     
-                    # Anexar os demais arquivos
                     for f in uploaded_word_files[1:]:
                         next_doc = Document(f)
                         composer.append(next_doc)
@@ -71,13 +77,13 @@ with tab1:
                                 label="📥 Baixar Word Final (.docx)",
                                 data=fp.read(),
                                 file_name="documento_final_mesclado.docx",
-                                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                key="btn_dl_docx"
                             )
                             
                     if output_format in ["Apenas PDF (.pdf)", "Ambos (Word e PDF)"]:
-                        # Converter usando LibreOffice
                         cmd = ["soffice", "--headless", "--convert-to", "pdf", merged_docx_path]
-                        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                        subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                         
                         pdf_path = "documento_final_mesclado.pdf"
                         if os.path.exists(pdf_path):
@@ -86,7 +92,8 @@ with tab1:
                                     label="📥 Baixar PDF Final (.pdf)",
                                     data=fp.read(),
                                     file_name="documento_final_mesclado.pdf",
-                                    mime="application/pdf"
+                                    mime="application/pdf",
+                                    key="btn_dl_pdf_from_word"
                                 )
                         else:
                             st.error("Erro na conversão para PDF pelo LibreOffice.")
@@ -116,7 +123,7 @@ with tab2:
         for idx, name in enumerate(pdf_names, start=1):
             st.text(f"{idx}. {name}")
             
-        if st.button("🚀 Juntar Todos os PDFs", type="primary"):
+        if st.button("🚀 Juntar Todos os PDFs", type="primary", key="btn_merge_pdf"):
             with st.spinner("Unificando PDFs..."):
                 try:
                     writer = PdfWriter()
@@ -136,11 +143,117 @@ with tab2:
                             label="📥 Baixar PDF Unificado (.pdf)",
                             data=fp.read(),
                             file_name="pdfs_unificados.pdf",
-                            mime="application/pdf"
+                            mime="application/pdf",
+                            key="btn_dl_merged_pdf"
                         )
                 except Exception as e:
                     st.error(f"Erro ao juntar os arquivos PDF: {str(e)}")
 
+# ---------------------------------------------------------
+# TAB 3: CONVERTER (WORD <-> PDF)
+# ---------------------------------------------------------
+with tab3:
+    st.header("Converter Formatos (Word ↔ PDF)")
+    st.write("Transforme arquivos Word em PDF ou converta PDFs para arquivos Word editáveis.")
+    
+    conversion_type = st.radio(
+        "Escolha o tipo de conversão:",
+        options=["Word (.docx) ➡️ PDF (.pdf)", "PDF (.pdf) ➡️ Word (.docx)"],
+        horizontal=True,
+        key="conversion_type"
+    )
+    
+    st.divider()
+    
+    # OPÇÃO 1: WORD PARA PDF
+    if conversion_type == "Word (.docx) ➡️ PDF (.pdf)":
+        st.subheader("Converter Word para PDF")
+        word_to_convert = st.file_uploader(
+            "Selecione um arquivo Word (.docx)", 
+            type=["docx"], 
+            accept_multiple_files=False,
+            key="w2p_uploader"
+        )
+        
+        if word_to_convert:
+            if st.button("🚀 Converter para PDF", type="primary", key="btn_w2p"):
+                with st.spinner("Convertendo Word para PDF..."):
+                    try:
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp_docx:
+                            tmp_docx.write(word_to_convert.getvalue())
+                            tmp_docx_path = tmp_docx.name
+                            
+                        cmd = ["soffice", "--headless", "--convert-to", "pdf", tmp_docx_path, "--outdir", tempfile.gettempdir()]
+                        subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                        
+                        expected_pdf_path = os.path.splitext(tmp_docx_path)[0] + ".pdf"
+                        
+                        if os.path.exists(expected_pdf_path):
+                            st.success("✅ Conversão para PDF concluída!")
+                            with open(expected_pdf_path, "rb") as fp:
+                                original_base_name = os.path.splitext(word_to_convert.name)[0]
+                                st.download_button(
+                                    label="📥 Baixar PDF Convertido",
+                                    data=fp.read(),
+                                    file_name=f"{original_base_name}.pdf",
+                                    mime="application/pdf",
+                                    key="btn_dl_w2p"
+                                )
+                            os.remove(expected_pdf_path)
+                        else:
+                            st.error("Falha ao gerar o PDF. Verifique o arquivo enviado.")
+                            
+                        if os.path.exists(tmp_docx_path):
+                            os.remove(tmp_docx_path)
+                            
+                    except Exception as e:
+                        st.error(f"Erro durante a conversão: {str(e)}")
+                        
+    # OPÇÃO 2: PDF PARA WORD
+    else:
+        st.subheader("Converter PDF para Word (.docx)")
+        pdf_to_convert = st.file_uploader(
+            "Selecione um arquivo PDF (.pdf)", 
+            type=["pdf"], 
+            accept_multiple_files=False,
+            key="p2w_uploader"
+        )
+        
+        if pdf_to_convert:
+            if st.button("🚀 Converter para Word (.docx)", type="primary", key="btn_p2w"):
+                with st.spinner("Convertendo PDF para Word (extraindo textos e layouts)..."):
+                    try:
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_pdf:
+                            tmp_pdf.write(pdf_to_convert.getvalue())
+                            tmp_pdf_path = tmp_pdf.name
+                            
+                        output_docx_path = tmp_pdf_path.replace(".pdf", ".docx")
+                        
+                        cv = Converter(tmp_pdf_path)
+                        cv.convert(output_docx_path, start=0, end=None)
+                        cv.close()
+                        
+                        if os.path.exists(output_docx_path):
+                            st.success("✅ Conversão para Word (.docx) concluída!")
+                            with open(output_docx_path, "rb") as fp:
+                                original_base_name = os.path.splitext(pdf_to_convert.name)[0]
+                                st.download_button(
+                                    label="📥 Baixar Arquivo Word (.docx)",
+                                    data=fp.read(),
+                                    file_name=f"{original_base_name}.docx",
+                                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                    key="btn_dl_p2w"
+                                )
+                            os.remove(output_docx_path)
+                        else:
+                            st.error("Falha ao gerar o arquivo Word.")
+                            
+                        if os.path.exists(tmp_pdf_path):
+                            os.remove(tmp_pdf_path)
+                            
+                    except Exception as e:
+                        st.error(f"Erro durante a conversão de PDF para Word: {str(e)}")
+
 # Rodapé com nota de privacidade
 st.markdown("---")
-st.caption("🔒 Seus arquivos são processados temporariamente na memória do servidor e descartados após o uso. Nenhuma cópia é armazenada.")
+st.caption("🔒 Seus arquivos são processados temporariamente na memória do servidor e descartados imediatamente após o uso. Nenhuma cópia é armazenada.")
