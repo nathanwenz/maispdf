@@ -14,8 +14,8 @@ st.set_page_config(
     layout="wide"
 )
 
-# Título Principal do Aplicativo
-st.title("📄 +PDF - Converta seus documentos (Word & PDF) ou junte-os, sem limites de quantidades dos arquivos soltos.")
+# Título Principal do Aplicativo Atualizado
+st.title("📄 +PDF - Converta ou faça a junção de seus documentos (Word & PDF)")
 st.markdown("Junte múltiplos documentos ou converta formatos entre Word e PDF de forma rápida e gratuita.")
 
 # Criar as abas do aplicativo
@@ -187,13 +187,13 @@ with tab3:
                         cmd = ["soffice", "--headless", "--convert-to", "pdf", tmp_docx_path, "--outdir", tempfile.gettempdir()]
                         subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                         
-                        base_name = os.path.splitext(tmp_docx_path)[0]
+                        base_name, _ = os.path.splitext(tmp_docx_path)
                         expected_pdf_path = base_name + ".pdf"
                         
                         if os.path.exists(expected_pdf_path):
                             st.success("✅ Conversão para PDF concluída!")
                             with open(expected_pdf_path, "rb") as fp:
-                                original_base_name = os.path.splitext(word_to_convert.name)[0]
+                                original_base_name, _ = os.path.splitext(word_to_convert.name)
                                 st.download_button(
                                     label="📥 Baixar PDF Convertido",
                                     data=fp.read(),
@@ -238,7 +238,7 @@ with tab3:
                         if os.path.exists(output_docx_path):
                             st.success("✅ Conversão para Word (.docx) concluída!")
                             with open(output_docx_path, "rb") as fp:
-                                original_base_name = os.path.splitext(pdf_to_convert.name)[0]
+                                original_base_name, _ = os.path.splitext(pdf_to_convert.name)
                                 st.download_button(
                                     label="📥 Baixar Arquivo Word (.docx)",
                                     data=fp.read(),
