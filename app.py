@@ -14,7 +14,44 @@ st.set_page_config(
     layout="wide"
 )
 
-# Título Principal do Aplicativo Atualizado
+# ---------------------------------------------------------
+# MARCA D'ÁGUA FIXA NO CANTO INFERIOR DIREITO
+# ---------------------------------------------------------
+st.markdown(
+    """
+    <style>
+    .watermark {
+        position: fixed;
+        bottom: 12px;
+        right: 20px;
+        font-size: 13px;
+        font-weight: bold;
+        color: #666666;
+        background-color: rgba(240, 242, 246, 0.85);
+        padding: 5px 12px;
+        border-radius: 6px;
+        border: 1px solid rgba(200, 200, 200, 0.5);
+        z-index: 999999;
+        pointer-events: none;
+        font-family: 'Source Sans Pro', sans-serif;
+    }
+    </style>
+    <div class="watermark">
+        developer Nathan Wenzel
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# ---------------------------------------------------------
+# FOTO DE CAPA / BANNER DO SITE
+# ---------------------------------------------------------
+if os.path.exists("banner.png"):
+    st.image("banner.png", use_container_width=True)
+elif os.path.exists("banner.jpg"):
+    st.image("banner.jpg", use_container_width=True)
+
+# Título Principal do Aplicativo
 st.title("📄 +PDF - Converta ou faça a junção de seus documentos (Word & PDF)")
 st.markdown("Junte múltiplos documentos ou converta formatos entre Word e PDF de forma rápida e gratuita.")
 
